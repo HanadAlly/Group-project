@@ -23,6 +23,7 @@
     .animate-fade-in { animation: fadeIn 0.5s ease-in; }
     .animate-slide-in { animation: slideIn 0.3s ease-out; }
     .skeleton { background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; }
+    .image-placeholder { background: #e0e0e0; }
     @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
     @keyframes slideIn { from { transform: translateX(100%); } to { transform: translateX(0); } }
     @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
@@ -188,7 +189,7 @@
         id: 10,
         name: "GMC Hummer EV",
         price: 99090,
-        image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRjLj2HI18tgUoftZShk6gBwQQZy44S_wDkTA&s",
+        image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRjLj2HI18tgUoftZShk6gBwQQZY44S_wDkTA&s",
         range: 405,
         description: "High-performance Truck.",
         topSpeed: "318 mph",
@@ -272,7 +273,7 @@
     function ProductSkeleton() {
       return (
         <div className="border rounded-lg p-4 bg-white dark:bg-gray-800 shadow-lg">
-          <div className="w-full h-40 sm:h-48 rounded skeleton"></div>
+          <div className="w-full h-40 sm:h-48 rounded skeleton image-placeholder"></div>
           <div className="mt-2 h-6 w-3/4 rounded skeleton"></div>
           <div className="mt-2 h-4 w-1/2 rounded skeleton"></div>
           <div className="mt-2 h-4 w-1/3 rounded skeleton"></div>
@@ -302,10 +303,39 @@
     }
 
     // Product Card Component
-    function ProductCard({ vehicle, onAddToCart, onViewDetails }) {
+    function ProductCard({ vehicle, onAddToCart, onViewDetails, onAddToWishlist, onToggleCompare, isInWishlist, isInCompare }) {
       return (
         <div className="border rounded-lg p-4 bg-white dark:bg-gray-800 shadow-lg hover:shadow-xl transition transform hover:-translate-y-1 animate-fade-in">
-          <img src={vehicle.image} alt={vehicle.name} className="w-full h-48 object-cover rounded" loading="lazy" />
+          <div className="relative w-full h-48">
+            <img
+              src={vehicle.image}
+              alt={vehicle.name}
+              className="w-full h-full object-cover rounded"
+              loading="lazy"
+              onLoad={(e) => e.target.classList.add('animate-fade-in')}
+              onError={(e) => e.target.src = 'https://via.placeholder.com/150'}
+            />
+            <div className="absolute top-2 right-2 flex gap-2">
+              <button
+                onClick={() => onAddToWishlist(vehicle)}
+                className={`p-1 rounded-full ${isInWishlist ? 'bg-red-600 text-white' : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200'}`}
+                aria-label={isInWishlist ? `Remove ${vehicle.name} from wishlist` : `Add ${vehicle.name} to wishlist`}
+              >
+                <svg className="w-5 h-5" fill={isInWishlist ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                </svg>
+              </button>
+              <button
+                onClick={() => onToggleCompare(vehicle)}
+                className={`p-1 rounded-full ${isInCompare ? 'bg-blue-600 text-white' : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200'}`}
+                aria-label={isInCompare ? `Remove ${vehicle.name} from comparison` : `Add ${vehicle.name} to comparison`}
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 6h18M3 12h18M3 18h18" />
+                </svg>
+              </button>
+            </div>
+          </div>
           <h3 className="text-base sm:text-lg font-semibold mt-3 text-gray-900 dark:text-white">{vehicle.name}</h3>
           <StarRating rating={vehicle.rating} />
           <p className="text-gray-500 dark:text-gray-400 text-sm">Price: ${vehicle.price.toLocaleString()}</p>
@@ -368,7 +398,137 @@
       );
     }
 
-    // Updated CheckoutModal Component
+    // Compare Modal Component
+    function CompareModal({ vehicles, onClose, onRemoveFromCompare }) {
+      if (!vehicles.length) return null;
+      return (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-gray-800 p-6 rounded-lg w-full max-w-4xl animate-fade-in overflow-x-auto" role="dialog" aria-labelledby="compare-title" tabIndex="-1">
+            <h2 id="compare-title" className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white mb-4">Compare Vehicles</h2>
+            <table className="w-full text-sm text-gray-600 dark:text-gray-300">
+              <thead>
+                <tr className="border-b">
+                  <th className="p-2 text-left"></th>
+                  {vehicles.map((vehicle) => (
+                    <th key={vehicle.id} className="p-2 text-left">
+                      <div className="flex items-center justify-between">
+                        <span>{vehicle.name}</span>
+                        <button
+                          onClick={() => onRemoveFromCompare(vehicle.id)}
+                          className="text-red-600 hover:text-red-800"
+                          aria-label={`Remove ${vehicle.name} from comparison`}
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                          </svg>
+                        </button>
+                      </div>
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                <tr className="border-b">
+                  <td className="p-2 font-semibold">Image</td>
+                  {vehicles.map((vehicle) => (
+                    <td key={vehicle.id} className="p-2">
+                      <img src={vehicle.image} alt={vehicle.name} className="w-24 h-16 object-cover rounded" loading="lazy" />
+                    </td>
+                  ))}
+                </tr>
+                <tr className="border-b">
+                  <td className="p-2 font-semibold">Price</td>
+                  {vehicles.map((vehicle) => (
+                    <td key={vehicle.id} className="p-2">${vehicle.price.toLocaleString()}</td>
+                  ))}
+                </tr>
+                <tr className="border-b">
+                  <td className="p-2 font-semibold">Range</td>
+                  {vehicles.map((vehicle) => (
+                    <td key={vehicle.id} className="p-2">{vehicle.range} miles</td>
+                  ))}
+                </tr>
+                <tr className="border-b">
+                  <td className="p-2 font-semibold">Top Speed</td>
+                  {vehicles.map((vehicle) => (
+                    <td key={vehicle.id} className="p-2">{vehicle.topSpeed}</td>
+                  ))}
+                </tr>
+                <tr className="border-b">
+                  <td className="p-2 font-semibold">Rating</td>
+                  {vehicles.map((vehicle) => (
+                    <td key={vehicle.id} className="p-2">{vehicle.rating.toFixed(1)}/5</td>
+                  ))}
+                </tr>
+                <tr className="border-b">
+                  <td className="p-2 font-semibold">Safety Rating</td>
+                  {vehicles.map((vehicle) => (
+                    <td key={vehicle.id} className="p-2">{vehicle.safetyRating.toFixed(1)}/5</td>
+                  ))}
+                </tr>
+                <tr>
+                  <td className="p-2 font-semibold">Category</td>
+                  {vehicles.map((vehicle) => (
+                    <td key={vehicle.id} className="p-2">{vehicle.category}</td>
+                  ))}
+                </tr>
+              </tbody>
+            </table>
+            <button
+              onClick={onClose}
+              className="mt-4 bg-red-600 text-white px-4 py-2 rounded-lg w-full hover:bg-red-700 transition text-sm font-medium"
+              aria-label="Close comparison modal"
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      );
+    }
+
+    // Updated Wishlist Component (positioned at right bottom)
+    function Wishlist({ wishlistItems, onRemoveFromWishlist, isOpen, toggleWishlist }) {
+      return (
+        <div className={`fixed bottom-0 right-0 sm:bottom-4 sm:right-4 bg-white dark:bg-gray-800 p-4 rounded-lg shadow-xl w-80 max-h-[70vh] overflow-y-auto transition-transform ${isOpen ? 'translate-x-0' : 'translate-x-full sm:translate-x-0'} animate-slide-in z-40`} role="dialog" aria-labelledby="wishlist-title">
+          <div className="flex justify-between items-center mb-4">
+            <h2 id="wishlist-title" className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white">
+              Wishlist ({wishlistItems.length} {wishlistItems.length === 1 ? 'item' : 'items'})
+            </h2>
+            <button
+              onClick={toggleWishlist}
+              className="sm:hidden text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-white"
+              aria-label="Toggle wishlist visibility"
+            >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+          {wishlistItems.length === 0 ? (
+            <p className="text-gray-500 dark:text-gray-400 text-sm">Your wishlist is empty</p>
+          ) : (
+            <div>
+              {wishlistItems.map((item) => (
+                <div key={item.id} className="flex justify-between items-center py-2 border-b">
+                  <span className="text-gray-900 dark:text-white text-sm truncate max-w-[200px]">{item.name}</span>
+                  <button
+                    onClick={() => onRemoveFromWishlist(item.id)}
+                    className="text-red-600 hover:text-red-800 text-sm"
+                    aria-label={`Remove ${item.name} from wishlist`}
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    // CheckoutModal Component
     function CheckoutModal({ cartItems, onClose, onConfirm }) {
       const total = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
       if (!cartItems.length) return null;
@@ -409,7 +569,7 @@
       );
     }
 
-    // Updated Cart Component
+    // Cart Component
     function Cart({ cartItems, onRemoveFromCart, onUpdateQuantity, isOpen, toggleCart, onCheckout, onExportPDF }) {
       const total = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
       const totalItems = cartItems.reduce((sum, item) => sum + item.quantity, 0);
@@ -488,27 +648,50 @@
       );
     }
 
-    // Updated App Component
+    // App Component
     function App() {
       const [cartItems, setCartItems] = useState(() => {
         const savedCart = localStorage.getItem('cartItems');
         return savedCart ? JSON.parse(savedCart) : [];
       });
+      const [wishlistItems, setWishlistItems] = useState(() => {
+        const savedWishlist = localStorage.getItem('wishlistItems');
+        return savedWishlist ? JSON.parse(savedWishlist) : [];
+      });
+      const [compareItems, setCompareItems] = useState([]);
       const [toast, setToast] = useState(null);
       const [selectedVehicle, setSelectedVehicle] = useState(null);
-      const [priceFilter, setPriceFilter] = useState([0, 100000]);
-      const [rangeFilter, setRangeFilter] = useState([0, 600]);
-      const [ratingFilter, setRatingFilter] = useState(0);
-      const [categoryFilter, setCategoryFilter] = useState("All");
-      const [sortOption, setSortOption] = useState("default");
+      const [priceFilter, setPriceFilter] = useState(() => {
+        const saved = localStorage.getItem('priceFilter');
+        return saved ? JSON.parse(saved) : [0, 100000];
+      });
+      const [rangeFilter, setRangeFilter] = useState(() => {
+        const saved = localStorage.getItem('rangeFilter');
+        return saved ? JSON.parse(saved) : [0, 600];
+      });
+      const [ratingFilter, setRatingFilter] = useState(() => {
+        const saved = localStorage.getItem('ratingFilter');
+        return saved ? Number(saved) : 0;
+      });
+      const [categoryFilter, setCategoryFilter] = useState(() => {
+        const saved = localStorage.getItem('categoryFilter');
+        return saved || "All";
+      });
+      const [sortOption, setSortOption] = useState(() => {
+        const saved = localStorage.getItem('sortOption');
+        return saved || "default";
+      });
       const [searchQuery, setSearchQuery] = useState("");
       const [isDarkMode, setIsDarkMode] = useState(() => {
         return localStorage.getItem('darkMode') === 'true';
       });
-      const [isCartOpen, setIsCartOpen] = useState(true); // Cart open by default
+      const [isCartOpen, setIsCartOpen] = useState(true);
+      const [isWishlistOpen, setIsWishlistOpen] = useState(false);
       const [isFilterOpen, setIsFilterOpen] = useState(false);
       const [isLoading, setIsLoading] = useState(true);
       const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
+      const [isCompareOpen, setIsCompareOpen] = useState(false);
+      const [searchSuggestions, setSearchSuggestions] = useState([]);
 
       useEffect(() => {
         document.documentElement.classList.toggle('dark', isDarkMode);
@@ -519,6 +702,33 @@
       useEffect(() => {
         localStorage.setItem('cartItems', JSON.stringify(cartItems));
       }, [cartItems]);
+
+      useEffect(() => {
+        localStorage.setItem('wishlistItems', JSON.stringify(wishlistItems));
+      }, [wishlistItems]);
+
+      useEffect(() => {
+        localStorage.setItem('priceFilter', JSON.stringify(priceFilter));
+        localStorage.setItem('rangeFilter', JSON.stringify(rangeFilter));
+        localStorage.setItem('ratingFilter', ratingFilter);
+        localStorage.setItem('categoryFilter', categoryFilter);
+        localStorage.setItem('sortOption', sortOption);
+      }, [priceFilter, rangeFilter, ratingFilter, categoryFilter, sortOption]);
+
+      useEffect(() => {
+        if (searchQuery) {
+          const suggestions = electricVehicles
+            .filter(v => (
+              v.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+              v.dealers.some(d => d.name.toLowerCase().includes(searchQuery.toLowerCase()))
+            ))
+            .slice(0, 5)
+            .map(v => v.name);
+          setSearchSuggestions(suggestions);
+        } else {
+          setSearchSuggestions([]);
+        }
+      }, [searchQuery]);
 
       const toggleDarkMode = () => {
         setIsDarkMode(prev => !prev);
@@ -541,7 +751,7 @@
           setCartItems([...cartItems, { ...vehicle, quantity: 1 }]);
         }
         showToast(`${vehicle.name} added to cart`);
-        setIsCartOpen(true); // Open cart when adding items
+        setIsCartOpen(true);
       };
 
       const removeFromCart = (id) => {
@@ -560,6 +770,43 @@
             item.id === id ? { ...item, quantity } : item
           )
         );
+      };
+
+      const addToWishlist = (vehicle) => {
+        const isInWishlist = wishlistItems.find((item) => item.id === vehicle.id);
+        if (isInWishlist) {
+          setWishlistItems(wishlistItems.filter((item) => item.id !== vehicle.id));
+          showToast(`${vehicle.name} removed from wishlist`);
+        } else {
+          setWishlistItems([...wishlistItems, vehicle]);
+          showToast(`${vehicle.name} added to wishlist`);
+        }
+        setIsWishlistOpen(true);
+      };
+
+      const removeFromWishlist = (id) => {
+        const item = wishlistItems.find((item) => item.id === id);
+        setWishlistItems(wishlistItems.filter((item) => item.id !== id));
+        showToast(`${item.name} removed from wishlist`);
+      };
+
+      const toggleCompare = (vehicle) => {
+        const isInCompare = compareItems.find((item) => item.id === vehicle.id);
+        if (isInCompare) {
+          setCompareItems(compareItems.filter((item) => item.id !== vehicle.id));
+          showToast(`${vehicle.name} removed from comparison`);
+        } else if (compareItems.length < 4) {
+          setCompareItems([...compareItems, vehicle]);
+          showToast(`${vehicle.name} added to comparison`);
+        } else {
+          showToast("Maximum 4 vehicles can be compared");
+        }
+      };
+
+      const removeFromCompare = (id) => {
+        const item = compareItems.find((item) => item.id === id);
+        setCompareItems(compareItems.filter((item) => item.id !== id));
+        showToast(`${item.name} removed from comparison`);
       };
 
       const exportCartAsPDF = () => {
@@ -621,6 +868,20 @@
                     </svg>
                   </button>
                   <button
+                    onClick={() => setIsWishlistOpen(!isWishlistOpen)}
+                    className="text-white hover:text-gray-200 relative"
+                    aria-label="Toggle wishlist"
+                  >
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                    </svg>
+                    {wishlistItems.length > 0 && (
+                      <span className="absolute -top-1 -right-1 bg-red-600 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                        {wishlistItems.length}
+                      </span>
+                    )}
+                  </button>
+                  <button
                     onClick={() => setIsCartOpen(!isCartOpen)}
                     className="text-white hover:text-gray-200 relative"
                     aria-label="Toggle cart"
@@ -631,6 +892,21 @@
                     {cartItems.length > 0 && (
                       <span className="absolute -top-1 -right-1 bg-red-600 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
                         {cartItems.reduce((sum, item) => sum + item.quantity, 0)}
+                      </span>
+                    )}
+                  </button>
+                  <button
+                    onClick={() => setIsCompareOpen(true)}
+                    className="text-white hover:text-gray-200 relative"
+                    aria-label="View comparison"
+                    disabled={compareItems.length < 2}
+                  >
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 6h18M3 12h18M3 18h18" />
+                    </svg>
+                    {compareItems.length > 0 && (
+                      <span className="absolute -top-1 -right-1 bg-blue-600 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                        {compareItems.length}
                       </span>
                     )}
                   </button>
@@ -647,7 +923,7 @@
               </div>
             </header>
             <main className="container mx-auto p-4 sm:p-6">
-              <div className="mb-4 sm:mb-6">
+              <div className="mb-4 sm:mb-6 relative">
                 <div className="relative max-w-md mx-auto sm:mx-0">
                   <input
                     type="text"
@@ -656,10 +932,24 @@
                     onChange={(e) => setSearchQuery(e.target.value)}
                     className="w-full p-2 pl-10 border rounded-lg bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-700 text-gray-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                     aria-label="Search vehicles, descriptions, or dealers"
+                    autoComplete="off"
                   />
                   <svg className="w-5 h-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                   </svg>
+                  {searchSuggestions.length > 0 && (
+                    <ul className="absolute z-10 w-full bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg mt-1 max-h-40 overflow-y-auto">
+                      {searchSuggestions.map((suggestion, i) => (
+                        <li
+                          key={i}
+                          className="p-2 text-sm text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer"
+                          onClick={() => setSearchQuery(suggestion)}
+                        >
+                          {suggestion}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
                 </div>
               </div>
               <div className={`mb-4 sm:mb-6 bg-white dark:bg-gray-800 p-4 sm:p-6 rounded-lg shadow-lg transition-all ${isFilterOpen ? 'block' : 'hidden sm:block'}`}>
@@ -743,10 +1033,20 @@
                         vehicle={vehicle}
                         onAddToCart={addToCart}
                         onViewDetails={setSelectedVehicle}
+                        onAddToWishlist={addToWishlist}
+                        onToggleCompare={toggleCompare}
+                        isInWishlist={wishlistItems.some(item => item.id === vehicle.id)}
+                        isInCompare={compareItems.some(item => item.id === vehicle.id)}
                       />
                     ))}
               </div>
             </main>
+            <Wishlist
+              wishlistItems={wishlistItems}
+              onRemoveFromWishlist={removeFromWishlist}
+              isOpen={isWishlistOpen}
+              toggleWishlist={() => setIsWishlistOpen(!isWishlistOpen)}
+            />
             <Cart
               cartItems={cartItems}
               onRemoveFromCart={removeFromCart}
@@ -761,6 +1061,11 @@
               cartItems={cartItems}
               onClose={() => setIsCheckoutOpen(false)}
               onConfirm={confirmCheckout}
+            />
+            <CompareModal
+              vehicles={compareItems}
+              onClose={() => setIsCompareOpen(false)}
+              onRemoveFromCompare={removeFromCompare}
             />
             {toast && <Toast message={toast} onClose={() => setToast(null)} />}
           </div>
