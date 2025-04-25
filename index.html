@@ -38,9 +38,9 @@
     const { useState, useEffect, Component } = React;
     const { jsPDF } = window.jspdf;
 
-    // Sample EV data with ratings, dealers, categories, and safety ratings
+    // Sample EV data
     const electricVehicles = [
-    {
+      {
         id: 1,
         name: "BYD Seal Saloon",
         price: 30990,
@@ -52,8 +52,8 @@
         safetyRating: 5.0,
         category: "Sedan",
         dealers: [
-          { name: "BYD China Center", location: " China,Pingshan District," },
-          { name: "BYD Hub", location: "Pingshan District," }
+          { name: "BYD China Center", location: "China, Pingshan District" },
+          { name: "BYD Hub", location: "Pingshan District" }
         ]
       },
       {
@@ -100,8 +100,8 @@
         safetyRating: 4.4,
         category: "SUV",
         dealers: [
-          { name: "Polestar", location: " Paris France," },
-          { name: "Polestar Hub", location: "Paris," }
+          { name: "Polestar", location: "Paris, France" },
+          { name: "Polestar Hub", location: "Paris" }
         ]
       },
       {
@@ -116,8 +116,8 @@
         safetyRating: 1.5,
         category: "Sedan",
         dealers: [
-          { name: "Volvo Center", location: "Berlin Germany" },
-          { name: "Volvo", location: "Berlin Germany," }
+          { name: "Volvo Center", location: "Berlin, Germany" },
+          { name: "Volvo", location: "Berlin, Germany" }
         ]
       },
       {
@@ -126,14 +126,14 @@
         price: 60990,
         image: "https://www.topgear.com/sites/default/files/2025/02/Original-25901-aw609563.jpg?w=827&h=465",
         range: 405,
-        description: "High-performance with dual motors and hybrid system intergrated.",
+        description: "High-performance with dual motors and hybrid system integrated.",
         topSpeed: "220 mph",
         rating: 1.5,
         safetyRating: 3.5,
         category: "Sedan",
         dealers: [
-          { name: "KiA", location: " California USA," },
-          { name: "Kia Center", location: "State of California," }
+          { name: "Kia", location: "California, USA" },
+          { name: "Kia Center", location: "State of California" }
         ]
       },
       {
@@ -148,8 +148,8 @@
         safetyRating: 5.5,
         category: "SUV",
         dealers: [
-          { name: "Fiat", location: " Russia Moscow," },
-          { name: "Fiat Hub", location: "Moscow," }
+          { name: "Fiat", location: "Russia, Moscow" },
+          { name: "Fiat Hub", location: "Moscow" }
         ]
       },
       {
@@ -164,13 +164,13 @@
         safetyRating: 3.0,
         category: "Truck",
         dealers: [
-          { name: "Chevrolet", location: " Tokyo Japan," },
-          { name: "Chevrolet center Hub", location: "Tokyo," }
+          { name: "Chevrolet", location: "Tokyo, Japan" },
+          { name: "Chevrolet Center Hub", location: "Tokyo" }
         ]
       },
       {
         id: 9,
-        name: "TeslaCyber Truck",
+        name: "Tesla Cybertruck",
         price: 72220,
         image: "https://blog.japanesecartrade.com/wp-content/uploads/2020/04/Tesla-Cybertruck.png",
         range: 405,
@@ -180,13 +180,13 @@
         safetyRating: 3.0,
         category: "Truck",
         dealers: [
-          { name: "Tesla", location: " USA,Texas" },
-          { name: "Tesla", location: "Texas,USA" }
+          { name: "Tesla", location: "USA, Texas" },
+          { name: "Tesla", location: "Texas, USA" }
         ]
       },
       {
         id: 10,
-        name: "GMC Hammer EV",
+        name: "GMC Hummer EV",
         price: 99090,
         image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRjLj2HI18tgUoftZShk6gBwQQZy44S_wDkTA&s",
         range: 405,
@@ -196,11 +196,10 @@
         safetyRating: 4.5,
         category: "Sedan",
         dealers: [
-          { name: "GMC Hammer", location: " USA,New York City" },
-          { name: "Hammer Hub", location: "New York City," }
+          { name: "GMC Hummer", location: "USA, New York City" },
+          { name: "Hummer Hub", location: "New York City" }
         ]
       },
-
       {
         id: 11,
         name: "Ford Mustang Mach-E",
@@ -369,7 +368,7 @@
       );
     }
 
-    // Checkout Modal
+    // Updated CheckoutModal Component
     function CheckoutModal({ cartItems, onClose, onConfirm }) {
       const total = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
       if (!cartItems.length) return null;
@@ -392,14 +391,14 @@
             <div className="mt-4 flex gap-2">
               <button
                 onClick={onConfirm}
-                className="flex-1 bg-green-600 text-white px-3 py-2 sm:px-4 sm:py-2 rounded-lg hover:bg-green-700 transition text-xs sm:text-sm font-medium min-w-[80px] truncate"
+                className="flex-1 bg-gradient-to-r from-green-600 to-green-700 text-white px-3 py-2 sm:px-4 sm:py-2 rounded-lg hover:from-green-700 hover:to-green-800 transition text-xs sm:text-sm font-medium min-w-[100px]"
                 aria-label="Confirm payment"
               >
                 Confirm Payment
               </button>
               <button
                 onClick={onClose}
-                className="flex-1 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 px-3 py-2 sm:px-4 sm:py-2 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition text-xs sm:text-sm font-medium min-w-[80px] truncate"
+                className="flex-1 bg-gradient-to-r from-red-600 to-red-700 text-white px-3 py-2 sm:px-4 sm:py-2 rounded-lg hover:from-red-700 hover:to-red-800 transition text-xs sm:text-sm font-medium min-w-[100px]"
                 aria-label="Cancel checkout"
               >
                 Cancel
@@ -410,14 +409,17 @@
       );
     }
 
-    // Cart Component
+    // Updated Cart Component
     function Cart({ cartItems, onRemoveFromCart, onUpdateQuantity, isOpen, toggleCart, onCheckout, onExportPDF }) {
       const total = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
+      const totalItems = cartItems.reduce((sum, item) => sum + item.quantity, 0);
 
       return (
-        <div className={`fixed top-16 right-0 bg-white dark:bg-gray-800 p-4 rounded-lg shadow-xl w-80 max-h-[70vh] overflow-y-auto transition-transform ${isOpen ? 'translate-x-0' : 'translate-x-full'} sm:translate-x-0 sm:top-4 sm:right-4 animate-slide-in z-40`} role="dialog" aria-labelledby="cart-title">
+        <div className={`fixed top-16 right-0 sm:top-20 sm:right-4 bg-white dark:bg-gray-800 p-4 rounded-lg shadow-xl w-80 max-h-[70vh] overflow-y-auto transition-transform ${isOpen ? 'translate-x-0' : 'translate-x-full sm:translate-x-0'} animate-slide-in z-40`} role="dialog" aria-labelledby="cart-title">
           <div className="flex justify-between items-center mb-4">
-            <h2 id="cart-title" className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white">Cart</h2>
+            <h2 id="cart-title" className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white">
+              Cart ({totalItems} {totalItems === 1 ? 'item' : 'items'})
+            </h2>
             <button
               onClick={toggleCart}
               className="sm:hidden text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-white"
@@ -434,17 +436,17 @@
             <div>
               {cartItems.map((item) => (
                 <div key={item.id} className="flex justify-between items-center py-2 border-b">
-                  <span className="text-gray-900 dark:text-white text-sm">{item.name}</span>
+                  <span className="text-gray-900 dark:text-white text-sm truncate max-w-[150px]">{item.name}</span>
                   <div className="flex items-center gap-2">
                     <button
                       onClick={() => onUpdateQuantity(item.id, item.quantity - 1)}
-                      className="text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-white text-sm"
+                      className="text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-white text-sm disabled:opacity-50"
                       disabled={item.quantity <= 1}
                       aria-label={`Decrease quantity of ${item.name}`}
                     >
                       -
                     </button>
-                    <span className="text-gray-900 dark:text-white text-sm">{item.quantity}</span>
+                    <span className="text-gray-900 dark:text-white text-sm w-8 text-center">{item.quantity}</span>
                     <button
                       onClick={() => onUpdateQuantity(item.id, item.quantity + 1)}
                       className="text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-white text-sm"
@@ -452,7 +454,7 @@
                     >
                       +
                     </button>
-                    <span className="text-gray-500 dark:text-gray-400 text-sm">${(item.price * item.quantity).toLocaleString()}</span>
+                    <span className="text-gray-500 dark:text-gray-400 text-sm w-20 text-right">${(item.price * item.quantity).toLocaleString()}</span>
                     <button
                       onClick={() => onRemoveFromCart(item.id)}
                       className="text-red-600 hover:text-red-800 text-sm"
@@ -468,14 +470,14 @@
               <p className="font-semibold mt-3 text-gray-900 dark:text-white text-sm">Total: ${total.toLocaleString()}</p>
               <button
                 onClick={onExportPDF}
-                className="mt-2 bg-blue-600 text-white px-3 py-2 sm:px-4 sm:py-2 rounded-lg w-full hover:bg-blue-700 transition text-xs sm:text-sm font-medium min-w-[80px]"
+                className="mt-2 bg-blue-600 text-white px-3 py-2 sm:px-4 sm:py-2 rounded-lg w-full hover:bg-blue-700 transition text-xs sm:text-sm font-medium"
                 aria-label="Export cart as PDF"
               >
                 Export as PDF
               </button>
               <button
                 onClick={onCheckout}
-                className="mt-2 bg-gradient-to-r from-green-600 to-green-700 text-white px-3 py-2 sm:px-4 sm:py-2 rounded-lg w-full hover:from-green-700 hover:to-green-800 transition text-xs sm:text-sm font-medium min-w-[80px]"
+                className="mt-2 bg-gradient-to-r from-green-600 to-green-700 text-white px-3 py-2 sm:px-4 sm:py-2 rounded-lg w-full hover:from-green-700 hover:to-green-800 transition text-xs sm:text-sm font-medium"
                 aria-label="Proceed to checkout"
               >
                 Checkout
@@ -486,7 +488,7 @@
       );
     }
 
-    // Main App Component
+    // Updated App Component
     function App() {
       const [cartItems, setCartItems] = useState(() => {
         const savedCart = localStorage.getItem('cartItems');
@@ -503,7 +505,7 @@
       const [isDarkMode, setIsDarkMode] = useState(() => {
         return localStorage.getItem('darkMode') === 'true';
       });
-      const [isCartOpen, setIsCartOpen] = useState(false);
+      const [isCartOpen, setIsCartOpen] = useState(true); // Cart open by default
       const [isFilterOpen, setIsFilterOpen] = useState(false);
       const [isLoading, setIsLoading] = useState(true);
       const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
@@ -511,7 +513,7 @@
       useEffect(() => {
         document.documentElement.classList.toggle('dark', isDarkMode);
         localStorage.setItem('darkMode', isDarkMode);
-        setTimeout(() => setIsLoading(false), 1000); // Simulate loading
+        setTimeout(() => setIsLoading(false), 1000);
       }, [isDarkMode]);
 
       useEffect(() => {
@@ -539,6 +541,7 @@
           setCartItems([...cartItems, { ...vehicle, quantity: 1 }]);
         }
         showToast(`${vehicle.name} added to cart`);
+        setIsCartOpen(true); // Open cart when adding items
       };
 
       const removeFromCart = (id) => {
@@ -585,7 +588,6 @@
         showToast("Payment confirmed! Cart cleared.");
       };
 
-      // Filter and sort vehicles
       const filteredVehicles = electricVehicles
         .filter((v) => v.price >= priceFilter[0] && v.price <= priceFilter[1])
         .filter((v) => v.range >= rangeFilter[0] && v.range <= rangeFilter[1])
