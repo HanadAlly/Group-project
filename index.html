@@ -24,9 +24,11 @@
     .animate-slide-in { animation: slideIn 0.3s ease-out; }
     .skeleton { background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; }
     .image-placeholder { background: #e0e0e0; }
+    .animate-spin { animation: spin 1s linear infinite; }
     @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
     @keyframes slideIn { from { transform: translateX(100%); } to { transform: translateX(0); } }
     @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
   </style>
 </head>
 <body>
@@ -486,7 +488,7 @@
       );
     }
 
-    // Updated Wishlist Component (positioned at right bottom)
+    // Wishlist Component
     function Wishlist({ wishlistItems, onRemoveFromWishlist, isOpen, toggleWishlist }) {
       return (
         <div className={`fixed bottom-0 right-0 sm:bottom-4 sm:right-4 bg-white dark:bg-gray-800 p-4 rounded-lg shadow-xl w-80 max-h-[70vh] overflow-y-auto transition-transform ${isOpen ? 'translate-x-0' : 'translate-x-full sm:translate-x-0'} animate-slide-in z-40`} role="dialog" aria-labelledby="wishlist-title">
@@ -528,42 +530,86 @@
       );
     }
 
-    // CheckoutModal Component
+    // Updated CheckoutModal Component with Payment Feedback
     function CheckoutModal({ cartItems, onClose, onConfirm }) {
+      const [isProcessing, setIsProcessing] = useState(false);
+      const [isConfirmed, setIsConfirmed] = useState(false);
       const total = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
+
       if (!cartItems.length) return null;
+
+      const handleConfirm = async () => {
+        setIsProcessing(true);
+        // Simulate async payment processing
+        await new Promise(resolve => setTimeout(resolve, 1500));
+        setIsProcessing(false);
+        setIsConfirmed(true);
+        onConfirm();
+      };
+
       return (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white dark:bg-gray-800 p-6 rounded-lg w-full max-w-lg sm:max-w-md animate-fade-in" role="dialog" aria-labelledby="checkout-title" tabIndex="-1">
-            <h2 id="checkout-title" className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white">Checkout</h2>
-            <div className="mt-4">
-              <h3 className="text-sm font-semibold text-gray-900 dark:text-white">Order Summary</h3>
-              <ul className="mt-2 text-sm text-gray-600 dark:text-gray-300">
-                {cartItems.map((item) => (
-                  <li key={item.id} className="flex justify-between py-1">
-                    <span>{item.name} (x{item.quantity})</span>
-                    <span>${(item.price * item.quantity).toLocaleString()}</span>
-                  </li>
-                ))}
-              </ul>
-              <p className="mt-3 font-semibold text-gray-900 dark:text-white">Total: ${total.toLocaleString()}</p>
-            </div>
-            <div className="mt-4 flex gap-2">
-              <button
-                onClick={onConfirm}
-                className="flex-1 bg-gradient-to-r from-green-600 to-green-700 text-white px-3 py-2 sm:px-4 sm:py-2 rounded-lg hover:from-green-700 hover:to-green-800 transition text-xs sm:text-sm font-medium min-w-[100px]"
-                aria-label="Confirm payment"
-              >
-                Confirm Payment
-              </button>
-              <button
-                onClick={onClose}
-                className="flex-1 bg-gradient-to-r from-red-600 to-red-700 text-white px-3 py-2 sm:px-4 sm:py-2 rounded-lg hover:from-red-700 hover:to-red-800 transition text-xs sm:text-sm font-medium min-w-[100px]"
-                aria-label="Cancel checkout"
-              >
-                Cancel
-              </button>
-            </div>
+            {isConfirmed ? (
+              <div className="text-center">
+                <svg className="w-16 h-16 mx-auto text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                </svg>
+                <h2 id="checkout-title" className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white mt-4">Payment Successful!</h2>
+                <p className="text-gray-600 dark:text-gray-300 mt-2 text-sm">Your order has been confirmed. Thank you for shopping with EV Store!</p>
+                <button
+                  onClick={onClose}
+                  className="mt-4 bg-blue-600 text-white px-3 py-2 sm:px-4 sm:py-2 rounded-lg w-full hover:bg-blue-700 transition text-xs sm:text-sm font-medium"
+                  aria-label="Close checkout modal"
+                >
+                  Close
+                </button>
+              </div>
+            ) : (
+              <>
+                <h2 id="checkout-title" className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white">Checkout</h2>
+                <div className="mt-4">
+                  <h3 className="text-sm font-semibold text-gray-900 dark:text-white">Order Summary</h3>
+                  <ul className="mt-2 text-sm text-gray-600 dark:text-gray-300">
+                    {cartItems.map((item) => (
+                      <li key={item.id} className="flex justify-between py-1">
+                        <span>{item.name} (x{item.quantity})</span>
+                        <span>${(item.price * item.quantity).toLocaleString()}</span>
+                      </li>
+                    ))}
+                  </ul>
+                  <p className="mt-3 font-semibold text-gray-900 dark:text-white">Total: ${total.toLocaleString()}</p>
+                </div>
+                <div className="mt-4 flex gap-2">
+                  <button
+                    onClick={handleConfirm}
+                    disabled={isProcessing}
+                    className={`flex-1 bg-gradient-to-r from-green-600 to-green-700 text-white px-3 py-2 sm:px-4 sm:py-2 rounded-lg hover:from-green-700 hover:to-green-800 transition text-xs sm:text-sm font-medium min-w-[100px] flex items-center justify-center ${isProcessing ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    aria-label="Confirm payment"
+                    aria-busy={isProcessing}
+                  >
+                    {isProcessing ? (
+                      <>
+                        <svg className="w-5 h-5 mr-2 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 12a8 8 0 1116 0 8 8 0 01-16 0z" />
+                        </svg>
+                        Processing...
+                      </>
+                    ) : (
+                      'Confirm Payment'
+                    )}
+                  </button>
+                  <button
+                    onClick={onClose}
+                    disabled={isProcessing}
+                    className="flex-1 bg-gradient-to-r from-red-600 to-red-700 text-white px-3 py-2 sm:px-4 sm:py-2 rounded-lg hover:from-red-700 hover:to-red-800 transition text-xs sm:text-sm font-medium min-w-[100px]"
+                    aria-label="Cancel checkout"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </>
+            )}
           </div>
         </div>
       );
@@ -648,7 +694,7 @@
       );
     }
 
-    // App Component
+    // Updated App Component with Enhanced Confirm Checkout
     function App() {
       const [cartItems, setCartItems] = useState(() => {
         const savedCart = localStorage.getItem('cartItems');
