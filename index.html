@@ -29,6 +29,11 @@
     @keyframes slideIn { from { transform: translateX(100%); } to { transform: translateX(0); } }
     @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
     @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    /* Carousel Animations */
+    @keyframes slideInFromRight { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+    @keyframes slideOutToLeft { from { transform: translateX(0); opacity: 1; } to { transform: translateX(-100%); opacity: 0; } }
+    .slide-in { animation: slideInFromRight 0.8s ease-in-out forwards; }
+    .slide-out { animation: slideOutToLeft 0.8s ease-in-out forwards; }
   </style>
 </head>
 <body>
@@ -695,6 +700,101 @@
       );
     }
 
+    // Hero Carousel Component
+    function HeroCarousel({ vehicles }) {
+      const [currentIndex, setCurrentIndex] = useState(0);
+      const [isAnimating, setIsAnimating] = useState(false);
+      const [nextIndex, setNextIndex] = useState(0); // For smoother animation staging
+
+      useEffect(() => {
+        if (!vehicles || vehicles.length === 0) return;
+
+        const interval = setInterval(() => {
+          if (!isAnimating) {
+            const next = (currentIndex + 1) % vehicles.length;
+            setNextIndex(next); // Stage the next index
+            setIsAnimating(true); // Start animation
+          }
+        }, 5000); // Change slide every 5 seconds
+
+        return () => clearInterval(interval);
+      }, [currentIndex, vehicles, isAnimating]);
+
+      useEffect(() => {
+        // This effect runs when isAnimating becomes true
+        if (isAnimating) {
+          // Wait for the slide-out animation to roughly finish before switching index
+          const timer = setTimeout(() => {
+            setCurrentIndex(nextIndex); // Update the actual current index
+            setIsAnimating(false); // Animation finished, ready for next cycle
+          }, 800); // Match animation duration
+          return () => clearTimeout(timer);
+        }
+      }, [isAnimating, nextIndex]);
+
+      if (!vehicles || vehicles.length === 0) {
+        return null; // Don't render if no vehicles
+      }
+
+      const currentVehicle = vehicles[currentIndex];
+      const nextVehicle = vehicles[nextIndex]; // Preload next image if needed
+
+      return (
+        <div className="relative w-full h-[60vh] sm:h-[70vh] md:h-[80vh] bg-gradient-to-b from-gray-800 to-gray-900 overflow-hidden shadow-lg mb-6">
+          {/* Background Image Slides */}
+          <div className="absolute inset-0 w-full h-full">
+            {vehicles.map((vehicle, index) => (
+              <div
+                key={vehicle.id}
+                className={`absolute inset-0 w-full h-full transition-opacity duration-1000 ease-in-out ${index === currentIndex ? 'opacity-100' : 'opacity-0'}`}
+                style={{
+                  backgroundImage: `url(${vehicle.image})`,
+                  backgroundSize: 'cover',
+                  backgroundPosition: 'center',
+                }}
+              >
+                {/* Dark overlay for text contrast */}
+                <div className="absolute inset-0 bg-black bg-opacity-50"></div>
+              </div>
+            ))}
+          </div>
+
+          {/* Animated Foreground Image (Optional - can be complex) */}
+          {/* For simplicity, we'll rely on the background fade */}
+
+          {/* Text Content Overlay */}
+          <div className="absolute inset-0 flex flex-col justify-center items-center text-center text-white p-4 z-10">
+            <p className="text-sm sm:text-base md:text-lg font-light tracking-widest uppercase animate-fade-in" style={{ animationDelay: '0.2s' }}>
+              THE BEST OR NOTHING
+            </p>
+            <h2 className="text-3xl sm:text-4xl md:text-6xl font-bold my-2 sm:my-4 animate-fade-in" style={{ animationDelay: '0.4s' }}>
+              EV Store
+            </h2>
+            <button className="mt-4 sm:mt-6 bg-gradient-to-r from-blue-600 to-blue-700 text-white px-6 py-2 sm:px-8 sm:py-3 rounded-lg hover:from-blue-700 hover:to-blue-800 transition text-sm sm:text-base font-medium animate-fade-in" style={{ animationDelay: '0.6s' }}>
+              Discover our Collection
+            </button>
+          </div>
+
+          {/* Carousel Indicators (Optional) */}
+          <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-2 z-10">
+            {vehicles.map((_, index) => (
+              <button
+                key={index}
+                onClick={() => {
+                  if (!isAnimating && index !== currentIndex) {
+                    setNextIndex(index);
+                    setIsAnimating(true);
+                  }
+                }}
+                className={`w-2 h-2 sm:w-3 sm:h-3 rounded-full transition ${currentIndex === index ? 'bg-white' : 'bg-gray-500 hover:bg-gray-300'}`}
+                aria-label={`Go to slide ${index + 1}`}
+              />
+            ))}
+          </div>
+        </div>
+      );
+    }
+
     // Updated App Component with Enhanced Confirm Checkout
     function App() {
       const [cartItems, setCartItems] = useState(() => {
@@ -979,7 +1079,10 @@
                 </div>
               </div>
             </header>
+            {/* Add Hero Carousel */}
+            <HeroCarousel vehicles={electricVehicles.slice(0, 5)} />
             <main className="container mx-auto p-4 sm:p-6">
+              {/* Search Bar - Moved below Hero */}
               <div className="mb-4 sm:mb-6 relative">
                 <div className="relative max-w-md mx-auto sm:mx-0">
                   <input
