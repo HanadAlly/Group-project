@@ -346,6 +346,7 @@
           <p className="text-gray-500 dark:text-gray-400 text-sm truncate">
             Sold by: {vehicle.dealers[0]?.name || 'N/A'}
           </p>
+          {/* Add gap-2 for better button spacing */}
           <div className="flex gap-2 mt-4">
             <button
               onClick={() => onAddToCart(vehicle)}
@@ -881,6 +882,16 @@
         showToast("Payment confirmed! Cart cleared.");
       };
 
+      const clearFilters = () => {
+        setPriceFilter([0, 100000]);
+        setRangeFilter([0, 600]);
+        setRatingFilter(0);
+        setCategoryFilter("All");
+        setSortOption("default");
+        setSearchQuery(""); // Also clear search query
+        showToast("Filters cleared");
+      };
+
       const filteredVehicles = electricVehicles
         .filter((v) => v.price >= priceFilter[0] && v.price <= priceFilter[1])
         .filter((v) => v.range >= rangeFilter[0] && v.range <= rangeFilter[1])
@@ -1067,6 +1078,16 @@
                       <option value="price-low">Price: Low to High</option>
                       <option value="price-high">Price: High to Low</option>
                     </select>
+                  </div>
+                  {/* Add Clear Filters Button */}
+                  <div className="sm:col-span-4 flex justify-end items-center mt-2 sm:mt-0">
+                    <button
+                      onClick={clearFilters}
+                      className="text-sm text-blue-600 dark:text-blue-400 hover:underline font-medium"
+                      aria-label="Clear all filters"
+                    >
+                      Clear Filters
+                    </button>
                   </div>
                 </div>
               </div>
