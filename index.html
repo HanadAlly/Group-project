@@ -18,8 +18,9 @@
     }
   </script>
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Saira:ital,wght@0,100..900;1,100..900&family=Wallpoet&display=swap');
     body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+    .logo-font { font-family: 'Wallpoet', sans-serif; }
     .animate-fade-in { animation: fadeIn 0.5s ease-in; }
     .animate-slide-in { animation: slideIn 0.3s ease-out; }
     .skeleton { background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; }
@@ -29,6 +30,11 @@
     @keyframes slideIn { from { transform: translateX(100%); } to { transform: translateX(0); } }
     @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
     @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    /* Carousel Animations */
+    @keyframes slideInFromRight { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+    @keyframes slideOutToLeft { from { transform: translateX(0); opacity: 1; } to { transform: translateX(-100%); opacity: 0; } }
+    .slide-in { animation: slideInFromRight 0.8s ease-in-out forwards; }
+    .slide-out { animation: slideOutToLeft 0.8s ease-in-out forwards; }
   </style>
 </head>
 <body>
@@ -346,6 +352,7 @@
           <p className="text-gray-500 dark:text-gray-400 text-sm truncate">
             Sold by: {vehicle.dealers[0]?.name || 'N/A'}
           </p>
+          {/* Add gap-2 for better button spacing */}
           <div className="flex gap-2 mt-4">
             <button
               onClick={() => onAddToCart(vehicle)}
@@ -694,6 +701,108 @@
       );
     }
 
+    // Hero Carousel Component
+    function HeroCarousel({ vehicles }) {
+      const [currentIndex, setCurrentIndex] = useState(0);
+      const [isAnimating, setIsAnimating] = useState(false);
+      const [nextIndex, setNextIndex] = useState(0); // For smoother animation staging
+
+      useEffect(() => {
+        if (!vehicles || vehicles.length === 0) return;
+
+        const interval = setInterval(() => {
+          if (!isAnimating) {
+            const next = (currentIndex + 1) % vehicles.length;
+            setNextIndex(next); // Stage the next index
+            setIsAnimating(true); // Start animation
+          }
+        }, 5000); // Change slide every 5 seconds
+
+        return () => clearInterval(interval);
+      }, [currentIndex, vehicles, isAnimating]);
+
+      useEffect(() => {
+        // This effect runs when isAnimating becomes true
+        if (isAnimating) {
+          // Wait for the slide-out animation to roughly finish before switching index
+          const timer = setTimeout(() => {
+            setCurrentIndex(nextIndex); // Update the actual current index
+            setIsAnimating(false); // Animation finished, ready for next cycle
+          }, 800); // Match animation duration
+          return () => clearTimeout(timer);
+        }
+      }, [isAnimating, nextIndex]);
+
+      if (!vehicles || vehicles.length === 0) {
+        return null; // Don't render if no vehicles
+      }
+
+      const currentVehicle = vehicles[currentIndex];
+      const nextVehicle = vehicles[nextIndex]; // Preload next image if needed
+
+      return (
+        <div className="relative w-full h-[60vh] sm:h-[70vh] md:h-[80vh] bg-gradient-to-b from-gray-800 to-gray-900 overflow-hidden shadow-lg mb-6">
+          {/* Background Image Slides */}
+          <div className="absolute inset-0 w-full h-full">
+            {vehicles.map((vehicle, index) => (
+              <div
+                key={vehicle.id}
+                className={`absolute inset-0 w-full h-full transition-opacity duration-1000 ease-in-out ${index === currentIndex ? 'opacity-100' : 'opacity-0'}`}
+                style={{
+                  backgroundImage: `url(${vehicle.image})`,
+                  backgroundSize: 'cover',
+                  backgroundPosition: 'center',
+                }}
+              >
+                {/* Dark overlay for text contrast */}
+                <div className="absolute inset-0 bg-black bg-opacity-50"></div>
+              </div>
+            ))}
+          </div>
+
+          {/* Animated Foreground Image (Optional - can be complex) */}
+          {/* For simplicity, we'll rely on the background fade */}
+
+          {/* Text Content Overlay */}
+          <div className="absolute inset-0 flex flex-col justify-center items-center text-center text-white p-4 z-10">
+            <p className="text-sm sm:text-base md:text-lg font-light tracking-widest uppercase animate-fade-in" style={{ animationDelay: '0.2s' }}>
+              THE BEST OR NOTHING
+            </p>
+            <h2 className="text-3xl sm:text-4xl md:text-6xl font-bold my-2 sm:my-4 animate-fade-in" style={{ animationDelay: '0.4s' }}>
+              EV Store
+            </h2>
+            <button
+              onClick={() => {
+                document.querySelector('.product-grid-section')?.scrollIntoView({ behavior: 'smooth' });
+              }}
+              className="mt-4 sm:mt-6 bg-gradient-to-r from-blue-600 to-blue-700 text-white px-6 py-2 sm:px-8 sm:py-3 rounded-lg hover:from-blue-700 hover:to-blue-800 transition text-sm sm:text-base font-medium animate-fade-in"
+              style={{ animationDelay: '0.6s' }}
+              aria-label="Discover our collection of electric vehicles"
+            >
+              Discover our Collection
+            </button>
+          </div>
+
+          {/* Carousel Indicators (Optional) */}
+          <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-2 z-10">
+            {vehicles.map((_, index) => (
+              <button
+                key={index}
+                onClick={() => {
+                  if (!isAnimating && index !== currentIndex) {
+                    setNextIndex(index);
+                    setIsAnimating(true);
+                  }
+                }}
+                className={`w-2 h-2 sm:w-3 sm:h-3 rounded-full transition ${currentIndex === index ? 'bg-white' : 'bg-gray-500 hover:bg-gray-300'}`}
+                aria-label={`Go to slide ${index + 1}`}
+              />
+            ))}
+          </div>
+        </div>
+      );
+    }
+
     // Updated App Component with Enhanced Confirm Checkout
     function App() {
       const [cartItems, setCartItems] = useState(() => {
@@ -881,6 +990,16 @@
         showToast("Payment confirmed! Cart cleared.");
       };
 
+      const clearFilters = () => {
+        setPriceFilter([0, 100000]);
+        setRangeFilter([0, 600]);
+        setRatingFilter(0);
+        setCategoryFilter("All");
+        setSortOption("default");
+        setSearchQuery(""); // Also clear search query
+        showToast("Filters cleared");
+      };
+
       const filteredVehicles = electricVehicles
         .filter((v) => v.price >= priceFilter[0] && v.price <= priceFilter[1])
         .filter((v) => v.range >= rangeFilter[0] && v.range <= rangeFilter[1])
@@ -902,7 +1021,13 @@
           <div className="min-h-screen bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white transition-colors">
             <header className="sticky top-0 bg-gradient-to-r from-blue-900 to-blue-800 text-white p-4 shadow-lg z-50">
               <div className="container mx-auto flex justify-between items-center">
-                <h1 className="text-lg sm:text-xl md:text-2xl font-bold">EV Store</h1>
+                {/* Updated Logo with Wallpoet font and Car Icon */}
+                <h1 className="text-lg sm:text-xl md:text-2xl font-bold flex items-center logo-font">
+                  <svg className="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 19v-8.93a2 2 0 01.894-1.789l7-4.375a2 2 0 012.212 0l7 4.375A2 2 0 0121 10.07V19m-9 2a2 2 0 100-4 2 2 0 000 4zm0 0V9m-1 12h2m-6 0h2m-2 0H6m3 0h6"></path>
+                  </svg>
+                  EV Store
+                </h1>
                 <div className="flex items-center gap-2 sm:gap-4">
                   <button
                     onClick={() => setIsFilterOpen(!isFilterOpen)}
@@ -968,7 +1093,10 @@
                 </div>
               </div>
             </header>
+            {/* Add Hero Carousel */}
+            <HeroCarousel vehicles={electricVehicles.slice(0, 5)} />
             <main className="container mx-auto p-4 sm:p-6">
+              {/* Search Bar - Moved below Hero */}
               <div className="mb-4 sm:mb-6 relative">
                 <div className="relative max-w-md mx-auto sm:mx-0">
                   <input
@@ -1068,9 +1196,20 @@
                       <option value="price-high">Price: High to Low</option>
                     </select>
                   </div>
+                  {/* Add Clear Filters Button */}
+                  <div className="sm:col-span-4 flex justify-end items-center mt-2 sm:mt-0">
+                    <button
+                      onClick={clearFilters}
+                      className="text-sm text-blue-600 dark:text-blue-400 hover:underline font-medium"
+                      aria-label="Clear all filters"
+                    >
+                      Clear Filters
+                    </button>
+                  </div>
                 </div>
               </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
+              {/* Add a class name to the product grid for scrolling */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6 product-grid-section">
                 {isLoading
                   ? Array(4).fill().map((_, i) => <ProductSkeleton key={i} />)
                   : filteredVehicles.map((vehicle) => (
